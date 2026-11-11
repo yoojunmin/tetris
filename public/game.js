@@ -68,6 +68,15 @@
   }
   function updateStats() { $('score').textContent = String(score).padStart(6,'0'); $('lines').textContent = String(lines).padStart(2,'0'); $('level').textContent = String(level).padStart(2,'0'); }
   function move(dx) { if (!playing || !current) return; if (!collides(current, dx, 0)) { current.x += dx; render(); } }
+  function rotate() {
+    if (!playing || !current) return;
+    const rotated = current.shape[0].map((_, x) => current.shape.map(row => row[x]).reverse());
+    const kicks = [0, -1, 1, -2, 2];
+    for (const kick of kicks) {
+      const candidate = { ...current, shape: rotated, x: current.x + kick };
+      if (!collides(candidate)) { current = candidate; render(); return; }
+    }
+  }
   function softDrop() { if (!playing || !current) return; if (!collides(current,0,1)) { current.y++; score++; $('score').textContent = String(score).padStart(6,'0'); } else lock(); render(); }
   function gameLoop(now) {
     if (!playing) return;
@@ -111,6 +120,6 @@
     if(room){socket.emit('leave-match',room);room=null;}
     const name=$('player-name').value.trim()||'Player';socket.emit('find-match',name);$('play-button').disabled=true;$('play-label').textContent='상대 찾는 중';$('queue-note').textContent='매칭 서버에 접속 중...';$('match-status').textContent='매칭 중';$('board-overlay').classList.remove('hidden');$('board-overlay').innerHTML='<div class="overlay-symbol">⌁</div><strong>상대를 찾고 있어요</strong><span>잠시만 기다려주세요.</span>'; $('opponent-placeholder').style.display='flex';$('opponent-name').textContent='상대 찾는 중';
   });
-  document.addEventListener('keydown',(event)=>{if(['a','d','s','ArrowLeft','ArrowRight','ArrowDown'].includes(event.key)){event.preventDefault();if(event.key==='a'||event.key==='ArrowLeft')move(-1);if(event.key==='d'||event.key==='ArrowRight')move(1);if(event.key==='s'||event.key==='ArrowDown')softDrop();}});
+  document.addEventListener('keydown',(event)=>{if(['a','d','s','ArrowLeft','ArrowRight','ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();if(event.key==='a'||event.key==='ArrowLeft')move(-1);if(event.key==='d'||event.key==='ArrowRight')move(1);if(event.key==='s'||event.key==='ArrowDown')softDrop();if(event.key==='ArrowUp')rotate();}});
   drawGrid(ctx,blankBoard(),CELL,boardCanvas.width,boardCanvas.height);drawGrid(octx,blankBoard(),20,opponentCanvas.width,opponentCanvas.height);
 })();
